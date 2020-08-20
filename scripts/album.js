@@ -10,7 +10,7 @@ var createSongRow = function (songNumber, songName, songLength) {
   var handleSongClick = function () {
     var clickedSongNumber = $(this).attr('data-song-number');
 
-    // 1. There is a song that is currently playing
+    // 1. There is no song that is currently playing
     if (currentlyPlayingSongNumber !== null) {
       var currentlyPlayingCell = $('.song-item-number[data-song-number="' + currentlyPlayingSongNumber + '"]');
 
@@ -21,10 +21,16 @@ var createSongRow = function (songNumber, songName, songLength) {
     if (clickedSongNumber !== currentlyPlayingSongNumber) {
       currentlyPlayingSongNumber = clickedSongNumber;
 
+      // set up the song to play
+      setSong(songNumber);
+
+      currentSoundFile.play();
+
       $(this).html(pauseButtonTemplate);
 
       // 3. The currently playing song was clicked
     } else {
+      currentSoundFile.pause();
       currentlyPlayingSongNumber = null;
       $(this).html(clickedSongNumber);
     }
@@ -40,6 +46,19 @@ var createSongRow = function (songNumber, songName, songLength) {
       songItem.html(playButtonTemplate);
     }
   };
+
+  var setSong = function (songNumber) {
+    if (currentSoundFile) {
+      currentSoundFile.stop();
+    }
+
+    var songUrl = currentAlbum.songs[currentlyPlayingSongNumber - 1].audioUrl;
+
+    currentSoundFile = new buzz.sound(songUrl, {
+      formats: [ 'mp3' ],
+      preload: true
+    });
+  }
 
   var offHover = function () {
     var songItem = $(this).find('.song-item-number');
@@ -58,14 +77,6 @@ var createSongRow = function (songNumber, songName, songLength) {
   $row.hover(onHover, offHover);
 
   return $row;
-};
-
-
-var setSong = function (songNumber) {
-  currentSoundFile = new buzz.sound(URL_OF_SONG, {
-    formats: [ 'mp3' ],
-    preload: true,
-  });
 };
 
 
@@ -94,6 +105,6 @@ var setCurrentAlbum = function(album) {
 var playButtonTemplate = '<a class="album-song-button"><span class="ion-play"></span></a>';
 var pauseButtonTemplate = '<a class="album-song-button"><span class="ion-pause"></span></a>';
 var currentlyPlayingSongNumber = null;
-var currentAlbum = null
+var currentSoundFile = null;
 
 setCurrentAlbum(albums[0]);
